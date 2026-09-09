@@ -9,10 +9,7 @@ import {
   Play,
   ArrowRight,
   ShieldCheck,
-  Cpu,
-  HardDrive,
   FileCode,
-  Calendar,
   AlertCircle
 } from "lucide-react";
 import { api, Project, Application } from "@/lib/api-client";
@@ -45,8 +42,8 @@ export default function ProjectDetailPage() {
   if (isLoading) {
     return (
       <div className="py-24 text-center">
-        <div className="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-        <p className="text-xs font-mono text-slate-400">Retrieving project telemetry...</p>
+        <div className="w-5 h-5 border-2 border-[#E9681B] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+        <p className="text-xs font-mono text-[#66635D]">Loading project telemetry...</p>
       </div>
     );
   }
@@ -54,9 +51,9 @@ export default function ProjectDetailPage() {
   if (!project) {
     return (
       <div className="py-24 text-center">
-        <AlertCircle className="w-8 h-8 text-rose-400 mx-auto mb-2" />
-        <h2 className="text-base font-semibold text-white">Project Not Found</h2>
-        <a href="/" className="text-xs text-cyan-400 hover:underline mt-2 inline-block">
+        <AlertCircle className="w-8 h-8 text-rose-500 mx-auto mb-2" />
+        <h2 className="text-sm font-semibold text-[#171717]">Project Not Found</h2>
+        <a href="/" className="text-xs text-[#E9681B] hover:underline mt-2 inline-block">
           Return to Dashboard
         </a>
       </div>
@@ -65,60 +62,58 @@ export default function ProjectDetailPage() {
 
   return (
     <div className="space-y-6">
-      {/* Project Header Card */}
-      <div className="bg-[#0e131d] border border-[#1e2838] rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Project Header */}
+      <div className="bg-[#FFFFFF] border border-[#DEDCD5] rounded-[10px] p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <div className="flex items-center space-x-2 text-xs font-mono text-cyan-400">
-            <Layers className="w-4 h-4" />
+          <div className="flex items-center space-x-2 text-[11px] font-mono text-[#66635D] uppercase">
+            <Layers className="w-3.5 h-3.5 text-[#E9681B]" />
             <span>PROJECT WORKSPACE</span>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">{project.name}</h1>
-          <p className="text-xs text-slate-400 max-w-2xl">{project.description}</p>
+          <h1 className="text-xl font-bold text-[#171717] tracking-tight">{project.name}</h1>
+          <p className="text-xs text-[#66635D] max-w-2xl">{project.description}</p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2.5">
           <button
             onClick={() => setIsIDEOpen(true)}
-            className="px-3.5 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-semibold text-xs flex items-center space-x-2 shadow-md shadow-cyan-950/40"
+            className="btn-orange px-3 py-1.5 flex items-center space-x-1.5 shadow-xs"
           >
-            <Terminal className="w-4 h-4" />
-            <span>Open Floating IDE</span>
+            <Terminal className="w-3.5 h-3.5" />
+            <span>Open in IDE</span>
           </button>
           <a
             href={`/projects/${project.id}/upload`}
-            className="px-3.5 py-2 rounded-lg bg-[#141b29] hover:bg-[#1a2336] text-white border border-[#222e42] text-xs font-medium flex items-center space-x-2"
+            className="btn-secondary px-3 py-1.5 flex items-center space-x-1.5"
           >
-            <Upload className="w-4 h-4 text-cyan-400" />
+            <Upload className="w-3.5 h-3.5 text-[#171717]" />
             <span>Upload Workload</span>
           </a>
         </div>
       </div>
 
-      {/* Applications List */}
+      {/* Applications Directory */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-white font-mono uppercase tracking-wider">
-            Configured Workload Applications ({applications.length})
-          </h2>
-        </div>
+        <h2 className="text-xs font-mono uppercase tracking-wider text-[#171717] font-semibold">
+          Configured Workload Applications ({applications.length})
+        </h2>
 
         {applications.length === 0 ? (
-          <div className="p-12 text-center rounded-2xl bg-[#0e131d] border border-[#1e2838] space-y-3">
-            <FileCode className="w-10 h-10 text-slate-600 mx-auto" />
-            <h3 className="text-sm font-medium text-white">No applications packaged yet</h3>
-            <p className="text-xs text-slate-400 max-w-md mx-auto">
-              Write an orbital edge script inside the Floating IDE, or upload a pre-trained model (.onnx, .tflite) or Python project archive.
+          <div className="p-10 text-center rounded-[10px] bg-[#FFFFFF] border border-[#DEDCD5] space-y-3">
+            <FileCode className="w-8 h-8 text-[#A5A198] mx-auto" />
+            <h3 className="text-xs font-semibold text-[#171717]">No applications packaged yet</h3>
+            <p className="text-xs text-[#66635D] max-w-sm mx-auto">
+              Author an orbital routine inside the Floating IDE or upload a model binary.
             </p>
-            <div className="pt-2 flex justify-center space-x-3">
+            <div className="pt-2 flex justify-center space-x-2">
               <button
                 onClick={() => setIsIDEOpen(true)}
-                className="px-3.5 py-2 rounded-lg bg-cyan-500 text-slate-950 font-semibold text-xs"
+                className="btn-orange px-3 py-1.5 text-xs"
               >
-                Launch Floating IDE
+                Launch IDE
               </button>
               <a
                 href={`/projects/${project.id}/upload`}
-                className="px-3.5 py-2 rounded-lg bg-[#141b29] text-slate-200 border border-[#222e42] text-xs"
+                className="btn-secondary px-3 py-1.5 text-xs"
               >
                 Upload File
               </a>
@@ -129,44 +124,44 @@ export default function ProjectDetailPage() {
             {applications.map((app) => (
               <div
                 key={app.id}
-                className="bg-[#0e131d] border border-[#1e2838] rounded-xl p-5 hover:border-cyan-500/40 transition-all flex flex-col justify-between shadow-sm group"
+                className="bg-[#FFFFFF] border border-[#DEDCD5] hover:border-[#C5C2B8] rounded-[10px] p-5 transition-all flex flex-col justify-between shadow-xs group"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs font-mono uppercase px-2 py-0.5 rounded bg-[#162030] text-cyan-400 border border-cyan-800/30">
+                    <div className="flex items-center space-x-1.5">
+                      <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-[#EFECE6] text-[#171717]">
                         {app.language}
                       </span>
-                      <span className="text-xs font-mono text-slate-500">v{app.version}</span>
+                      <span className="text-[11px] font-mono text-[#78746D]">v{app.version}</span>
                     </div>
                     <span
-                      className={`text-[10px] font-mono px-2 py-0.5 rounded uppercase font-semibold ${
+                      className={`text-[10px] font-mono px-2 py-0.2 rounded uppercase font-semibold ${
                         app.status === "ready"
-                          ? "bg-emerald-950 text-emerald-300 border border-emerald-800"
-                          : "bg-amber-950 text-amber-300 border border-amber-800"
+                          ? "bg-[#F0FDF4] text-[#15803D] border border-[#BBF7D0]"
+                          : "bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A]"
                       }`}
                     >
                       {app.status}
                     </span>
                   </div>
 
-                  <h3 className="text-base font-bold text-white group-hover:text-cyan-300 transition-colors">
+                  <h3 className="text-sm font-bold text-[#171717] group-hover:text-[#E9681B] transition-colors">
                     {app.name}
                   </h3>
 
                   {app.requirements && (
-                    <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-[#1a2230] text-[11px] font-mono">
+                    <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-[#EFECE6] text-[11px] font-mono">
                       <div>
-                        <span className="text-slate-500 block">RAM</span>
-                        <span className="text-slate-200 font-medium">{app.requirements.ram_mb} MB</span>
+                        <span className="text-[#78746D] block text-[10px]">RAM</span>
+                        <span className="text-[#171717] font-semibold">{app.requirements.ram_mb} MB</span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block">COMPUTE</span>
-                        <span className="text-slate-200 font-medium">{app.requirements.cpu_seconds}s</span>
+                        <span className="text-[#78746D] block text-[10px]">COMPUTE</span>
+                        <span className="text-[#171717] font-semibold">{app.requirements.cpu_seconds}s</span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block">SENSOR</span>
-                        <span className="text-cyan-400 font-medium uppercase truncate block">
+                        <span className="text-[#78746D] block text-[10px]">SENSOR</span>
+                        <span className="text-[#E9681B] font-semibold uppercase truncate block">
                           {app.requirements.input_type}
                         </span>
                       </div>
@@ -174,19 +169,19 @@ export default function ProjectDetailPage() {
                   )}
                 </div>
 
-                <div className="mt-5 pt-3 border-t border-[#1a2230] flex items-center justify-between">
+                <div className="mt-5 pt-3 border-t border-[#EFECE6] flex items-center justify-between">
                   <a
                     href={`/applications/${app.id}`}
-                    className="text-xs text-slate-300 hover:text-white flex items-center space-x-1"
+                    className="text-xs text-[#66635D] hover:text-[#171717] flex items-center space-x-1 font-mono"
                   >
                     <span>Validation & Specs</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ArrowRight className="w-3 h-3" />
                   </a>
                   <a
                     href={`/applications/${app.id}/simulate`}
-                    className="px-3 py-1.5 rounded bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-700/50 text-cyan-300 text-xs font-mono flex items-center space-x-1.5 transition-colors"
+                    className="px-2.5 py-1 rounded-[5px] bg-[#171717] hover:bg-[#2B2B2B] text-white text-xs font-mono flex items-center space-x-1.5 transition-colors"
                   >
-                    <Play className="w-3 h-3 fill-current" />
+                    <Play className="w-3 h-3 fill-current text-[#E9681B]" />
                     <span>Simulate</span>
                   </a>
                 </div>

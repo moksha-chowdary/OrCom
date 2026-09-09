@@ -1,83 +1,151 @@
 @import "tailwindcss";
 
 :root {
-  --bg-space: #07090e;
-  --bg-card: #0e131d;
-  --bg-card-hover: #141b29;
-  --border-subtle: #1e2838;
-  --border-active: #38bdf8;
-  --text-primary: #f1f5f9;
-  --text-muted: #94a3b8;
-  --accent-cyan: #00f0ff;
-  --accent-emerald: #10b981;
-  --accent-amber: #f59e0b;
-  --accent-rose: #f43f5e;
-  --accent-purple: #a855f7;
+  /* OrCom Color System */
+  --bg-primary: #F7F6F2;
+  --bg-surface: #FFFFFF;
+  --bg-subtle: #EFECE6;
+  --bg-hover: #F2EFE9;
+  --text-primary: #171717;
+  --text-secondary: #252525;
+  --text-muted: #66635D;
+  --border-color: #DEDCD5;
+  --border-subtle: #E8E5DD;
+  --accent-orange: #E9681B;
+  --accent-orange-hover: #D65A12;
+  --accent-orange-subtle: rgba(233, 104, 27, 0.08);
+  --accent-orange-border: rgba(233, 104, 27, 0.25);
+  
+  /* Status Colors */
+  --status-emerald: #15803D;
+  --status-emerald-bg: #F0FDF4;
+  --status-emerald-border: #BBF7D0;
+  --status-amber: #B45309;
+  --status-amber-bg: #FFFBEB;
+  --status-amber-border: #FDE68A;
+  --status-rose: #B91C1C;
+  --status-rose-bg: #FEF2F2;
+  --status-rose-border: #FECACA;
 }
 
 body {
-  background-color: var(--bg-space);
+  background-color: var(--bg-primary);
   color: var(--text-primary);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  overflow-x: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbar */
+/* Monospace / Tabular numbers for technical values */
+.font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-feature-settings: "tnum" 1, "cv02" 1, "cv05" 1;
+}
+
+/* Custom technical scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #0b0f17;
+  background: #EFECE6;
 }
 ::-webkit-scrollbar-thumb {
-  background: #232f42;
-  border-radius: 3px;
+  background: #D5D1C7;
+  border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #33435c;
+  background: #BAB5A8;
 }
 
-/* Glowing dot pulse animation */
-@keyframes pulse-radar {
-  0% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.7);
+/* Upcoming path dashed flow animation */
+@keyframes orbital-dash {
+  to {
+    stroke-dashoffset: -20;
   }
-  70% {
-    transform: scale(1.15);
-    box-shadow: 0 0 0 10px rgba(0, 240, 255, 0);
+}
+
+.orbital-upcoming-path {
+  stroke-dasharray: 4, 4;
+  animation: orbital-dash 1.2s linear infinite;
+}
+
+/* Split-flap mechanical flip keyframes */
+@keyframes flap-down {
+  0% {
+    transform: rotateX(0deg);
   }
   100% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(0, 240, 255, 0);
+    transform: rotateX(-90deg);
   }
 }
 
-.animate-pulse-radar {
-  animation: pulse-radar 2s infinite cubic-bezier(0.45, 0, 0.55, 1);
-}
-
-/* Dashed stroke animation for upcoming pathway */
-@keyframes dash-flow {
-  to {
-    stroke-dashoffset: -24;
+@keyframes flap-up {
+  0% {
+    transform: rotateX(90deg);
+  }
+  100% {
+    transform: rotateX(0deg);
   }
 }
 
-.upcoming-path {
-  stroke-dasharray: 4, 4;
-  animation: dash-flow 1.5s linear infinite;
+/* Restrained micro-interactions */
+.orcom-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-/* Glassmorphic card */
-.glass-panel {
-  background: rgba(14, 19, 29, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.orcom-card:hover {
+  border-color: #C8C5BD;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02);
 }
 
-.glass-panel-hover:hover {
-  border-color: rgba(56, 189, 248, 0.3);
-  box-shadow: 0 4px 24px -2px rgba(0, 240, 255, 0.08);
+.orcom-card-active {
+  border-color: var(--accent-orange);
+  box-shadow: 0 0 0 1px var(--accent-orange), 0 2px 8px rgba(233, 104, 27, 0.12);
+}
+
+/* Button styles */
+.btn-primary {
+  background-color: var(--text-primary);
+  color: #FFFFFF;
+  border-radius: 7px;
+  font-weight: 500;
+  font-size: 13px;
+  transition: all 0.15s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--text-secondary);
+}
+
+.btn-orange {
+  background-color: var(--accent-orange);
+  color: #FFFFFF;
+  border-radius: 7px;
+  font-weight: 500;
+  font-size: 13px;
+  transition: all 0.15s ease;
+}
+
+.btn-orange:hover {
+  background-color: var(--accent-orange-hover);
+}
+
+.btn-secondary {
+  background-color: #FFFFFF;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 7px;
+  font-weight: 500;
+  font-size: 13px;
+  transition: all 0.15s ease;
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-hover);
+  border-color: #CECAC0;
 }

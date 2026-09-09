@@ -2,91 +2,94 @@
 
 import React from "react";
 import {
+  CheckCircle2,
   Clock,
-  Navigation,
+  Radio,
   Eye,
   Camera,
   Cpu,
-  Radio,
-  CheckCircle2,
-  AlertCircle
+  ArrowDownToLine,
+  Navigation
 } from "lucide-react";
+import SplitFlapText from "./ui/SplitFlapText";
 
 interface MissionPipelineProps {
   currentStatus: string;
 }
 
 const STAGES = [
-  { id: "scheduled", label: "Scheduled", icon: Clock, desc: "Uplink verified" },
-  { id: "awaiting_pass", label: "Awaiting Pass", icon: Navigation, desc: "Orbital approach" },
-  { id: "sensor_active", label: "Sensor Active", icon: Eye, desc: "LOS acquired" },
-  { id: "capturing", label: "Capturing", icon: Camera, desc: "Swath acquisition" },
-  { id: "processing", label: "Processing", icon: Cpu, desc: "Edge inference" },
-  { id: "downlinking", label: "Downlinking", icon: Radio, desc: "Vector telemetry" },
-  { id: "complete", label: "Complete", icon: CheckCircle2, desc: "Ground confirmed" },
+  { id: "scheduled", label: "SCHEDULED", desc: "Uplink verified" },
+  { id: "awaiting_pass", label: "PASS ACQUIRED", desc: "AOS horizon" },
+  { id: "sensor_active", label: "SENSOR ACTIVE", desc: "Payload energized" },
+  { id: "capturing", label: "CAPTURING", desc: "Swath acquisition" },
+  { id: "processing", label: "PROCESSING", desc: "Edge inference" },
+  { id: "downlinking", label: "DOWNLINKING", desc: "Vector telemetry" },
+  { id: "complete", label: "COMPLETE", desc: "Ground confirmed" },
 ];
 
 export default function MissionPipeline({ currentStatus }: MissionPipelineProps) {
-  const currentIndex = STAGES.findIndex((s) => s.id === currentStatus.toLowerCase());
-  const isFailed = currentStatus.toLowerCase() === "failed";
+  const normStatus = currentStatus.toLowerCase();
+  const currentIndex = STAGES.findIndex((s) => s.id === normStatus);
+  const activeStage = STAGES[Math.max(0, currentIndex)] || STAGES[0];
 
   return (
-    <div className="w-full bg-[#0c111c] border border-[#1e2838] rounded-xl p-4 sm:p-5 shadow-lg">
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
-          Orbital Mission Pipeline Execution
-        </span>
-        <div className="flex items-center space-x-2 font-mono text-xs">
-          <span className="text-slate-500">CURRENT STAGE:</span>
-          <span
-            className={`px-2 py-0.5 rounded font-semibold uppercase ${
-              isFailed
-                ? "bg-rose-950 text-rose-300 border border-rose-800"
-                : currentIndex === STAGES.length - 1
-                ? "bg-emerald-950 text-emerald-300 border border-emerald-800"
-                : "bg-cyan-950 text-cyan-300 border border-cyan-800"
-            }`}
-          >
-            {currentStatus.replace("_", " ")}
+    <div className="w-full bg-[#FFFFFF] border border-[#DEDCD5] rounded-[10px] p-4 sm:p-5 shadow-xs space-y-4">
+      {/* Top Status Header with SplitFlap Instrumentation */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EFECE6] pb-3.5">
+        <div>
+          <span className="text-[11px] font-mono uppercase tracking-wider text-[#66635D] block">
+            MISSION LIFECYCLE INSTRUMENTATION
           </span>
+          <span className="text-xs text-[#171717] font-medium">
+            Active Spacecraft Task Execution
+          </span>
+        </div>
+
+        {/* SplitFlap Instrumentation Display */}
+        <div className="flex items-center space-x-2">
+          <span className="text-[10px] font-mono text-[#66635D] uppercase">STATE:</span>
+          <SplitFlapText text={activeStage.label} size="sm" />
         </div>
       </div>
 
-      {/* Horizontal Pipeline Steps */}
+      {/* Stepper Pipeline */}
       <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
         {STAGES.map((stage, idx) => {
-          const Icon = stage.icon;
           const isPassed = currentIndex > idx;
           const isCurrent = currentIndex === idx;
-          const isPending = currentIndex < idx;
 
-          let cardStyle = "bg-[#0f1420] border-[#1e2838] text-slate-500 opacity-60";
-          let iconStyle = "text-slate-500";
-          let badgeStyle = "bg-[#182030] text-slate-400";
+          let bg = "bg-[#F7F6F2] border-[#E8E5DD] text-[#8C887E]";
+          let numColor = "text-[#A5A198]";
+          let labelColor = "text-[#8C887E]";
 
           if (isPassed) {
-            cardStyle = "bg-emerald-950/20 border-emerald-800/40 text-emerald-200";
-            iconStyle = "text-emerald-400";
-            badgeStyle = "bg-emerald-900/50 text-emerald-300";
+            bg = "bg-[#FFFFFF] border-[#DEDCD5] text-[#171717]";
+            numColor = "text-[#15803D]";
+            labelColor = "text-[#171717]";
           } else if (isCurrent) {
-            cardStyle = "bg-cyan-950/40 border-cyan-500 text-white shadow-lg shadow-cyan-950/50 ring-1 ring-cyan-500/50";
-            iconStyle = "text-cyan-400 animate-pulse";
-            badgeStyle = "bg-cyan-500 text-slate-950 font-bold";
+            bg = "bg-[#FFF8F4] border-[#E9681B] text-[#171717] shadow-xs";
+            numColor = "text-[#E9681B]";
+            labelColor = "text-[#171717] font-semibold";
           }
 
           return (
             <div
               key={stage.id}
-              className={`flex flex-col p-2.5 rounded-lg border transition-all ${cardStyle}`}
+              className={`flex flex-col p-2 rounded-[6px] border transition-all ${bg}`}
             >
-              <div className="flex items-center justify-between mb-1.5">
-                <Icon className={`w-4 h-4 ${iconStyle}`} />
-                <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${badgeStyle}`}>
+              <div className="flex items-center justify-between mb-1">
+                <span className={`text-[10px] font-mono font-bold ${numColor}`}>
                   0{idx + 1}
                 </span>
+                {isPassed && <CheckCircle2 className="w-3 h-3 text-[#15803D]" />}
+                {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-[#E9681B] animate-pulse" />}
               </div>
-              <span className="text-xs font-medium leading-snug">{stage.label}</span>
-              <span className="text-[10px] text-slate-400 truncate mt-0.5">{stage.desc}</span>
+              <span className={`text-[11px] font-mono truncate ${labelColor}`}>
+                {stage.label}
+              </span>
+              <span className="text-[9.5px] text-[#66635D] truncate mt-0.5">
+                {stage.desc}
+              </span>
             </div>
           );
         })}

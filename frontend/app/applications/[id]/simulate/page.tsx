@@ -13,7 +13,8 @@ import {
   ArrowRight,
   ShieldCheck,
   Compass,
-  RotateCcw
+  RotateCcw,
+  Orbit
 } from "lucide-react";
 import {
   api,
@@ -22,6 +23,9 @@ import {
   Satellite,
   SimulationResult
 } from "@/lib/api-client";
+import SatelliteMap from "@/components/SatelliteMap";
+import SplitFlapText from "@/components/ui/SplitFlapText";
+import BorderGlow from "@/components/ui/BorderGlow";
 
 export default function SimulatorPage() {
   const params = useParams();
@@ -39,6 +43,7 @@ export default function SimulatorPage() {
   // Simulation run state
   const [isSimulating, setIsSimulating] = useState(false);
   const [simProgress, setSimProgress] = useState(0);
+  const [simStepText, setSimStepText] = useState("INITIALIZING SIMULATION");
   const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,16 +65,32 @@ export default function SimulatorPage() {
       .finally(() => setIsLoading(false));
   }, [appId]);
 
+  const targetCoordsMap: Record<string, { lat: number; lon: number }> = {
+    "Andhra Pradesh": { lat: 15.8281, lon: 78.0373 },
+    "Gulf of Aden": { lat: 12.8000, lon: 48.0000 },
+    "Punjab": { lat: 30.9000, lon: 75.8500 },
+    "Suez Canal": { lat: 30.5852, lon: 32.2654 },
+  };
+
+  const currentCoords = targetCoordsMap[targetRegion] || { lat: 15.8281, lon: 78.0373 };
+
   const handleRunSimulation = async () => {
     setIsSimulating(true);
     setSimProgress(15);
+    setSimStepText("CALCULATING ORBITAL PASS");
     setSimulationResult(null);
     setErrorMessage(null);
 
     try {
-      // Stage 1: Progress reveal animation
-      const progressTimer1 = setTimeout(() => setSimProgress(50), 400);
-      const progressTimer2 = setTimeout(() => setSimProgress(85), 900);
+      setTimeout(() => {
+        setSimProgress(50);
+        setSimStepText("EVALUATING RESOURCE BUDGET");
+      }, 400);
+
+      setTimeout(() => {
+        setSimProgress(85);
+        setSimStepText("SIMULATING ONBOARD EXECUTION");
+      }, 900);
 
       const result = await api.runSimulation(appId, {
         satellite_id: selectedSatId,
@@ -78,6 +99,7 @@ export default function SimulatorPage() {
 
       setTimeout(() => {
         setSimProgress(100);
+        setSimStepText("SIMULATION COMPLETE");
         setSimulationResult(result);
         setIsSimulating(false);
       }, 1300);
@@ -90,8 +112,8 @@ export default function SimulatorPage() {
   if (isLoading) {
     return (
       <div className="py-24 text-center">
-        <div className="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-        <p className="text-xs font-mono text-slate-400">Loading orbital simulator specs...</p>
+        <div className="w-5 h-5 border-2 border-[#E9681B] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+        <p className="text-xs font-mono text-[#66635D]">Loading orbital simulator parameters...</p>
       </div>
     );
   }
@@ -99,69 +121,69 @@ export default function SimulatorPage() {
   const selectedSat = satellites.find((s) => s.id === selectedSatId) || satellites[0];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="bg-[#0e131d] border border-[#1e2838] rounded-2xl p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6">
+      {/* Simulation Header Banner */}
+      <div className="bg-[#FFFFFF] border border-[#DEDCD5] rounded-[10px] p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center space-x-2 text-xs font-mono text-cyan-400">
-            <Radio className="w-4 h-4" />
-            <span>DETERMINISTIC SIMULATION HARNESS</span>
+          <div className="flex items-center space-x-2 text-[11px] font-mono text-[#66635D] uppercase">
+            <Orbit className="w-3.5 h-3.5 text-[#E9681B]" />
+            <span>ORBITAL SIMULATION CENTERPIECE</span>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight mt-1">
+          <h1 className="text-xl font-bold text-[#171717] tracking-tight mt-1">
             Simulate: {application?.name}
           </h1>
-          <p className="text-xs text-slate-400">
-            Evaluates compute passes, onboard RAM, power draw, and speed factors against actual spacecraft specs.
+          <p className="text-xs text-[#66635D]">
+            Spacecraft: <strong className="text-[#171717] font-mono">{selectedSat?.code}</strong> • Target: <strong className="text-[#171717]">{targetRegion}</strong>
           </p>
         </div>
 
         <button
           onClick={handleRunSimulation}
           disabled={isSimulating}
-          className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-semibold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-cyan-950/40 transition-all disabled:opacity-50"
+          className="btn-orange px-4 py-2 flex items-center space-x-2 shadow-xs disabled:opacity-50"
         >
-          <Play className="w-4 h-4 fill-current" />
+          <Play className="w-3.5 h-3.5 fill-current" />
           <span>{isSimulating ? "Simulating..." : "Execute Simulation"}</span>
         </button>
       </div>
 
-      {/* Target & Spacecraft Configuration */}
+      {/* Target & Spacecraft Configuration Selectors */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Spacecraft Selection */}
-        <div className="bg-[#0e131d] border border-[#1e2838] rounded-xl p-5 space-y-3">
-          <label className="block text-xs font-mono uppercase text-slate-400">
-            Select Assigned Spacecraft
-          </label>
-          <div className="space-y-2">
+        <div className="bg-[#FFFFFF] border border-[#DEDCD5] rounded-[10px] p-4 space-y-2.5 shadow-xs">
+          <span className="text-[11px] font-mono uppercase text-[#66635D] block">
+            ASSIGNED SPACECRAFT
+          </span>
+          <div className="space-y-1.5">
             {satellites.map((sat) => (
               <label
                 key={sat.id}
-                className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
+                className={`flex items-center justify-between p-2.5 rounded-[6px] border cursor-pointer transition-colors ${
                   selectedSatId === sat.id
-                    ? "bg-[#141d2d] border-cyan-500 text-white"
-                    : "bg-[#0b0f17] border-[#1e2838] text-slate-400 hover:border-slate-700"
+                    ? "bg-[#FFF8F4] border-[#E9681B] text-[#171717]"
+                    : "bg-[#F7F6F2] border-[#E8E5DD] text-[#66635D] hover:border-[#D5D1C7]"
                 }`}
               >
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2.5">
                   <input
                     type="radio"
                     name="satellite"
                     checked={selectedSatId === sat.id}
                     onChange={() => setSelectedSatId(sat.id)}
-                    className="accent-cyan-400"
+                    className="accent-[#E9681B]"
                   />
                   <div>
-                    <span className="font-mono font-bold text-sm text-white">{sat.code}</span>
-                    <span className="text-xs text-slate-400 block">
+                    <span className="font-mono font-bold text-xs text-[#171717]">{sat.code}</span>
+                    <span className="text-[11px] text-[#78746D] block">
                       {sat.cpu_cores} Cores @ {sat.cpu_ghz}GHz • {sat.ram_mb} MB RAM
                     </span>
                   </div>
                 </div>
                 <span
-                  className={`text-[10px] font-mono px-2 py-0.5 rounded uppercase font-semibold ${
+                  className={`text-[9.5px] font-mono px-1.5 py-0.2 rounded uppercase font-semibold ${
                     sat.status === "available"
-                      ? "bg-emerald-950 text-emerald-300"
-                      : "bg-rose-950 text-rose-300"
+                      ? "bg-[#F0FDF4] text-[#15803D] border border-[#BBF7D0]"
+                      : "bg-[#FEF2F2] text-[#B91C1C] border border-[#FECACA]"
                   }`}
                 >
                   {sat.status}
@@ -172,11 +194,11 @@ export default function SimulatorPage() {
         </div>
 
         {/* Target Horizon Selection */}
-        <div className="bg-[#0e131d] border border-[#1e2838] rounded-xl p-5 space-y-3">
-          <label className="block text-xs font-mono uppercase text-slate-400">
-            Target Geographical Horizon
-          </label>
-          <div className="space-y-2">
+        <div className="bg-[#FFFFFF] border border-[#DEDCD5] rounded-[10px] p-4 space-y-2.5 shadow-xs">
+          <span className="text-[11px] font-mono uppercase text-[#66635D] block">
+            TARGET HORIZON CONVERGENCE
+          </span>
+          <div className="space-y-1.5">
             {[
               { id: "Andhra Pradesh", label: "Andhra Pradesh (15.82°N, 78.03°E)", desc: "Forest thermal anomalies" },
               { id: "Gulf of Aden", label: "Gulf of Aden (12.80°N, 48.00°E)", desc: "Maritime choke point" },
@@ -185,23 +207,23 @@ export default function SimulatorPage() {
             ].map((reg) => (
               <label
                 key={reg.id}
-                className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
+                className={`flex items-center justify-between p-2.5 rounded-[6px] border cursor-pointer transition-colors ${
                   targetRegion === reg.id
-                    ? "bg-[#141d2d] border-cyan-500 text-white"
-                    : "bg-[#0b0f17] border-[#1e2838] text-slate-400 hover:border-slate-700"
+                    ? "bg-[#FFF8F4] border-[#E9681B] text-[#171717]"
+                    : "bg-[#F7F6F2] border-[#E8E5DD] text-[#66635D] hover:border-[#D5D1C7]"
                 }`}
               >
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2.5">
                   <input
                     type="radio"
                     name="targetRegion"
                     checked={targetRegion === reg.id}
                     onChange={() => setTargetRegion(reg.id)}
-                    className="accent-cyan-400"
+                    className="accent-[#E9681B]"
                   />
                   <div>
-                    <span className="font-semibold text-xs text-white">{reg.label}</span>
-                    <span className="text-[11px] text-slate-500 block">{reg.desc}</span>
+                    <span className="font-semibold text-xs text-[#171717]">{reg.label}</span>
+                    <span className="text-[10px] text-[#78746D] block">{reg.desc}</span>
                   </div>
                 </div>
               </label>
@@ -210,16 +232,32 @@ export default function SimulatorPage() {
         </div>
       </div>
 
-      {/* Simulation Progress Animation Bar */}
+      {/* Orbital View — Explains what the workload is doing (§12) */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-xs font-mono text-[#171717]">
+          <span className="font-semibold uppercase">ORBITAL VIEW & TARGET CONVERGENCE</span>
+          <span className="text-[#66635D] text-[11px]">
+            Orange dashed upcoming path indicates satellite approach
+          </span>
+        </div>
+        <SatelliteMap
+          satelliteId={selectedSatId}
+          satelliteCode={selectedSat?.code || "OC-01"}
+          targetCoords={{ lat: currentCoords.lat, lon: currentCoords.lon, label: `${targetRegion.toUpperCase()}` }}
+          height={340}
+        />
+      </div>
+
+      {/* Meaningful Simulation Progress State (§22) */}
       {isSimulating && (
-        <div className="bg-[#0e131d] border border-cyan-500/40 rounded-xl p-5 space-y-3 shadow-lg">
-          <div className="flex justify-between text-xs font-mono text-cyan-400">
-            <span>EXECUTING ORBITAL HARDWARE PROPAGATION...</span>
-            <span>{simProgress}%</span>
+        <div className="bg-[#FFFFFF] border border-[#E9681B] rounded-[10px] p-4 space-y-2.5 shadow-xs">
+          <div className="flex justify-between text-xs font-mono">
+            <span className="text-[#171717] font-semibold">{simStepText}</span>
+            <span className="text-[#E9681B] font-bold">{simProgress}%</span>
           </div>
-          <div className="w-full bg-[#121824] rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-[#EFECE6] rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 h-full transition-all duration-300 ease-out"
+              className="bg-[#E9681B] h-full transition-all duration-300 ease-out"
               style={{ width: `${simProgress}%` }}
             />
           </div>
@@ -227,155 +265,143 @@ export default function SimulatorPage() {
       )}
 
       {errorMessage && (
-        <div className="p-4 rounded-xl bg-rose-950/60 border border-rose-800 text-rose-300 text-xs flex items-center space-x-2">
-          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+        <div className="p-3.5 rounded-[8px] bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center space-x-2">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
           <span>{errorMessage}</span>
         </div>
       )}
 
-      {/* Simulation Results Display (Computed deterministically) */}
+      {/* Simulation Results — Tabular Readouts (§12) */}
       {simulationResult && (
-        <div className="bg-[#0e131d] border border-[#1e2838] rounded-2xl p-6 space-y-6 shadow-xl animate-in fade-in duration-300">
-          <div className="flex items-center justify-between border-b border-[#1e2838] pb-4">
-            <div className="flex items-center space-x-3">
-              {simulationResult.status === "completed" ? (
-                <div className="w-8 h-8 rounded-full bg-emerald-950 border border-emerald-800 flex items-center justify-center text-emerald-400">
-                  <CheckCircle2 className="w-5 h-5" />
+        <BorderGlow active={simulationResult.status === "completed"}>
+          <div className="bg-[#FFFFFF] rounded-[10px] p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-[#EFECE6] pb-3.5">
+              <div className="flex items-center space-x-3">
+                {simulationResult.status === "completed" ? (
+                  <CheckCircle2 className="w-5 h-5 text-[#15803D]" />
+                ) : (
+                  <AlertTriangle className="w-5 h-5 text-[#B91C1C]" />
+                )}
+                <div>
+                  <h3 className="text-sm font-bold text-[#171717] font-mono uppercase">
+                    Simulation Outcome: {simulationResult.status}
+                  </h3>
+                  <span className="text-xs text-[#66635D]">
+                    Target: {simulationResult.target_region} • Spacecraft: {simulationResult.satellite_code}
+                  </span>
                 </div>
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-rose-950 border border-rose-800 flex items-center justify-center text-rose-400">
-                  <AlertTriangle className="w-5 h-5" />
-                </div>
-              )}
-              <div>
-                <h3 className="text-sm font-bold text-white font-mono uppercase">
-                  Simulation Outcome: {simulationResult.status}
-                </h3>
-                <p className="text-xs text-slate-400">
-                  Target: {simulationResult.target_region} • Spacecraft: {simulationResult.satellite_code}
-                </p>
               </div>
-            </div>
 
-            <span
-              className={`text-xs font-mono px-3 py-1 rounded-full uppercase font-bold ${
-                simulationResult.status === "completed"
-                  ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
-                  : "bg-rose-950 text-rose-400 border border-rose-800"
-              }`}
-            >
-              {simulationResult.status === "completed" ? "Pass Verified" : "Failed Budget"}
-            </span>
-          </div>
-
-          {simulationResult.failure_reason && (
-            <div className="p-3 bg-rose-950/40 border border-rose-800/70 rounded-lg text-rose-300 text-xs">
-              <strong>Failure Cause:</strong> {simulationResult.failure_reason}
-            </div>
-          )}
-
-          {/* Computed Resource Breakdown */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {/* RAM Utilization */}
-            <div className="bg-[#121824] p-4 rounded-xl border border-[#1e2838] space-y-2">
-              <span className="text-xs text-slate-400 flex items-center justify-between">
-                <span>RAM Usage</span>
-                <span className="font-mono text-cyan-400">{simulationResult.ram_pct}%</span>
-              </span>
-              <div className="w-full bg-[#1b2536] rounded-full h-1.5 overflow-hidden">
-                <div
-                  className={`h-full ${
-                    simulationResult.ram_pct > 100 ? "bg-rose-500" : "bg-cyan-400"
-                  }`}
-                  style={{ width: `${Math.min(100, simulationResult.ram_pct)}%` }}
-                />
-              </div>
-              <span className="text-[10px] text-slate-500 block font-mono">
-                {requirements?.ram_mb} MB / {selectedSat.ram_mb} MB
-              </span>
-            </div>
-
-            {/* Compute Pass Window */}
-            <div className="bg-[#121824] p-4 rounded-xl border border-[#1e2838] space-y-2">
-              <span className="text-xs text-slate-400 flex items-center justify-between">
-                <span>Pass Compute</span>
-                <span className="font-mono text-cyan-400">{simulationResult.cpu_pct}%</span>
-              </span>
-              <div className="w-full bg-[#1b2536] rounded-full h-1.5 overflow-hidden">
-                <div
-                  className={`h-full ${
-                    simulationResult.cpu_pct > 100 ? "bg-rose-500" : "bg-cyan-400"
-                  }`}
-                  style={{ width: `${Math.min(100, simulationResult.cpu_pct)}%` }}
-                />
-              </div>
-              <span className="text-[10px] text-slate-500 block font-mono">
-                {simulationResult.execution_seconds}s (speed adjusted)
-              </span>
-            </div>
-
-            {/* Power Budget */}
-            <div className="bg-[#121824] p-4 rounded-xl border border-[#1e2838] space-y-2">
-              <span className="text-xs text-slate-400 flex items-center justify-between">
-                <span>Power Draw</span>
-                <span className="font-mono text-amber-400">{simulationResult.power_pct}%</span>
-              </span>
-              <div className="w-full bg-[#1b2536] rounded-full h-1.5 overflow-hidden">
-                <div
-                  className={`h-full ${
-                    simulationResult.power_pct > 100 ? "bg-rose-500" : "bg-amber-400"
-                  }`}
-                  style={{ width: `${Math.min(100, simulationResult.power_pct)}%` }}
-                />
-              </div>
-              <span className="text-[10px] text-slate-500 block font-mono">
-                {requirements?.estimated_power_wh.toFixed(1)} Wh / {selectedSat.power_budget_wh} Wh
-              </span>
-            </div>
-
-            {/* Downlink Advantage */}
-            <div className="bg-[#121824] p-4 rounded-xl border border-[#1e2838] space-y-2">
-              <span className="text-xs text-slate-400 flex items-center justify-between">
-                <span>Downlink Savings</span>
-                <span className="font-mono text-emerald-400">
-                  {simulationResult.downlink_reduction_pct}%
-                </span>
-              </span>
-              <div className="w-full bg-[#1b2536] rounded-full h-1.5 overflow-hidden">
-                <div
-                  className="h-full bg-emerald-400"
-                  style={{ width: `${simulationResult.downlink_reduction_pct}%` }}
-                />
-              </div>
-              <span className="text-[10px] text-slate-500 block font-mono">
-                {simulationResult.input_data_mb}MB → {simulationResult.output_data_mb}MB
-              </span>
-            </div>
-          </div>
-
-          {/* Action to proceed to deployment */}
-          <div className="pt-4 border-t border-[#1e2838] flex items-center justify-between">
-            <button
-              onClick={handleRunSimulation}
-              className="text-xs text-slate-400 hover:text-white flex items-center space-x-1"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Re-run Simulation</span>
-            </button>
-
-            {simulationResult.status === "completed" && (
-              <a
-                href={`/applications/${application?.id}/deploy?sat=${selectedSat.id}&region=${encodeURIComponent(
-                  targetRegion
-                )}`}
-                className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-xs flex items-center space-x-2 shadow-lg shadow-emerald-950/40 transition-all hover:scale-[1.02]"
+              <span
+                className={`text-xs font-mono px-2.5 py-0.5 rounded font-bold uppercase ${
+                  simulationResult.status === "completed"
+                    ? "bg-[#F0FDF4] text-[#15803D] border border-[#BBF7D0]"
+                    : "bg-[#FEF2F2] text-[#B91C1C] border border-[#FECACA]"
+                }`}
               >
-                <span>Schedule Pass & Deploy to Orbit</span>
-                <ArrowRight className="w-4 h-4" />
-              </a>
+                {simulationResult.status === "completed" ? "Pass Verified" : "Budget Failed"}
+              </span>
+            </div>
+
+            {simulationResult.failure_reason && (
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-[6px] text-rose-700 text-xs font-mono">
+                <strong>Failure Reason:</strong> {simulationResult.failure_reason}
+              </div>
             )}
+
+            {/* Tabular Resource Utilization Metrics (§12) */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono">
+              <div className="bg-[#F7F6F2] p-3.5 rounded-[8px] border border-[#E8E5DD] space-y-1.5">
+                <div className="flex justify-between text-xs">
+                  <span className="text-[#66635D]">RAM USAGE</span>
+                  <span className="font-bold text-[#171717]">{simulationResult.ram_pct}%</span>
+                </div>
+                <div className="w-full bg-[#E8E5DD] rounded-full h-1 overflow-hidden">
+                  <div
+                    className={`h-full ${simulationResult.ram_pct > 100 ? "bg-[#B91C1C]" : "bg-[#171717]"}`}
+                    style={{ width: `${Math.min(100, simulationResult.ram_pct)}%` }}
+                  />
+                </div>
+                <span className="text-[10px] text-[#78746D] block">
+                  {requirements?.ram_mb} MB / {selectedSat.ram_mb} MB
+                </span>
+              </div>
+
+              <div className="bg-[#F7F6F2] p-3.5 rounded-[8px] border border-[#E8E5DD] space-y-1.5">
+                <div className="flex justify-between text-xs">
+                  <span className="text-[#66635D]">COMPUTE PASS</span>
+                  <span className="font-bold text-[#171717]">{simulationResult.cpu_pct}%</span>
+                </div>
+                <div className="w-full bg-[#E8E5DD] rounded-full h-1 overflow-hidden">
+                  <div
+                    className={`h-full ${simulationResult.cpu_pct > 100 ? "bg-[#B91C1C]" : "bg-[#171717]"}`}
+                    style={{ width: `${Math.min(100, simulationResult.cpu_pct)}%` }}
+                  />
+                </div>
+                <span className="text-[10px] text-[#78746D] block">
+                  {simulationResult.execution_seconds}s (speed factor)
+                </span>
+              </div>
+
+              <div className="bg-[#F7F6F2] p-3.5 rounded-[8px] border border-[#E8E5DD] space-y-1.5">
+                <div className="flex justify-between text-xs">
+                  <span className="text-[#66635D]">POWER DRAW</span>
+                  <span className="font-bold text-[#171717]">{simulationResult.power_pct}%</span>
+                </div>
+                <div className="w-full bg-[#E8E5DD] rounded-full h-1 overflow-hidden">
+                  <div
+                    className={`h-full ${simulationResult.power_pct > 100 ? "bg-[#B91C1C]" : "bg-[#171717]"}`}
+                    style={{ width: `${Math.min(100, simulationResult.power_pct)}%` }}
+                  />
+                </div>
+                <span className="text-[10px] text-[#78746D] block">
+                  {requirements?.estimated_power_wh.toFixed(1)} Wh / {selectedSat.power_budget_wh} Wh
+                </span>
+              </div>
+
+              <div className="bg-[#F7F6F2] p-3.5 rounded-[8px] border border-[#E8E5DD] space-y-1.5">
+                <div className="flex justify-between text-xs">
+                  <span className="text-[#66635D]">DOWNLINK REDUCTION</span>
+                  <span className="font-bold text-[#E9681B]">
+                    {simulationResult.downlink_reduction_pct}%
+                  </span>
+                </div>
+                <div className="w-full bg-[#E8E5DD] rounded-full h-1 overflow-hidden">
+                  <div
+                    className="h-full bg-[#E9681B]"
+                    style={{ width: `${simulationResult.downlink_reduction_pct}%` }}
+                  />
+                </div>
+                <span className="text-[10px] text-[#78746D] block">
+                  {simulationResult.input_data_mb}MB → {simulationResult.output_data_mb}MB
+                </span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="pt-3 border-t border-[#EFECE6] flex items-center justify-between">
+              <button
+                onClick={handleRunSimulation}
+                className="text-xs text-[#66635D] hover:text-[#171717] flex items-center space-x-1 font-mono"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Re-simulate</span>
+              </button>
+
+              {simulationResult.status === "completed" && (
+                <a
+                  href={`/applications/${application?.id}/deploy?sat=${selectedSat.id}&region=${encodeURIComponent(
+                    targetRegion
+                  )}`}
+                  className="btn-orange px-4 py-2 flex items-center space-x-2 shadow-xs"
+                >
+                  <span>Schedule Pass & Deploy to Orbit</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </a>
+              )}
+            </div>
           </div>
-        </div>
+        </BorderGlow>
       )}
     </div>
   );

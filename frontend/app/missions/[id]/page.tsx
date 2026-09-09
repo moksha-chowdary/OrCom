@@ -12,8 +12,6 @@ import {
   Terminal,
   Zap,
   ArrowDownToLine,
-  Share2,
-  ExternalLink,
   Target
 } from "lucide-react";
 import {
@@ -23,6 +21,8 @@ import {
 } from "@/lib/api-client";
 import MissionPipeline from "@/components/MissionPipeline";
 import SatelliteMap from "@/components/SatelliteMap";
+import SplitFlapText from "@/components/ui/SplitFlapText";
+import BorderGlow from "@/components/ui/BorderGlow";
 
 export default function MissionDetailPage() {
   const params = useParams();
@@ -47,7 +47,6 @@ export default function MissionDetailPage() {
           if (data.result) {
             setResultData(data.result);
           } else if (data.status === "complete") {
-            // Fetch explicit result endpoint
             api.getMissionResult(missionId).then((res) => {
               if (isMounted) setResultData(res);
             }).catch(() => {});
@@ -68,7 +67,6 @@ export default function MissionDetailPage() {
     };
   }, [missionId]);
 
-  // Fetch static mission details once
   useEffect(() => {
     if (!missionId) return;
     api.listMissions().then((missions) => {
@@ -80,8 +78,8 @@ export default function MissionDetailPage() {
   if (isLoading && !statusData) {
     return (
       <div className="py-24 text-center">
-        <div className="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-        <p className="text-xs font-mono text-slate-400">Locking mission telemetry channel...</p>
+        <div className="w-5 h-5 border-2 border-[#E9681B] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+        <p className="text-xs font-mono text-[#66635D]">Acquiring orbital telemetry stream...</p>
       </div>
     );
   }
@@ -94,155 +92,152 @@ export default function MissionDetailPage() {
 
   return (
     <div className="space-y-6">
-      {/* Mission Header Banner */}
-      <div className="bg-[#0e131d] border border-[#1e2838] rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Mission Header */}
+      <div className="bg-[#FFFFFF] border border-[#DEDCD5] rounded-[10px] p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <div className="flex items-center space-x-2">
-            <span className="text-xs font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/40">
-              MISSION OPERATIONS
+          <div className="flex items-center space-x-2 text-xs font-mono">
+            <span className="px-1.5 py-0.5 rounded bg-[#EFECE6] text-[#171717] font-semibold uppercase">
+              MISSION OPS
             </span>
-            <span className="font-mono text-xs text-slate-400">
-              CODE: <strong className="text-white">{missionInfo?.mission_code || missionId}</strong>
+            <span className="text-[#66635D]">
+              CODE: <strong className="text-[#171717]">{missionInfo?.mission_code || missionId}</strong>
             </span>
-            <span className="text-slate-600">•</span>
-            <span className="font-mono text-xs text-slate-400">
-              SPACECRAFT: <strong className="text-cyan-400">{satCode}</strong>
+            <span className="text-[#A5A198]">•</span>
+            <span className="text-[#66635D]">
+              SPACECRAFT: <strong className="text-[#E9681B]">{satCode}</strong>
             </span>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">
+          <h1 className="text-xl font-bold text-[#171717] tracking-tight">
             {missionInfo?.application_name || "Orbital In-Flight Mission"}
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-[#66635D]">
             Target Horizon: {targetRegion} ({targetLat.toFixed(2)}°N, {targetLon.toFixed(2)}°E)
           </p>
         </div>
 
-        <div className="flex items-center space-x-3 font-mono text-xs">
-          <div className="px-3 py-2 rounded-lg bg-[#141b29] border border-[#1e2838] text-slate-300">
-            <span className="text-slate-500 block text-[10px]">PROGRESS</span>
-            <span className="text-cyan-400 font-bold">{statusData?.progress_pct || 0}%</span>
+        <div className="flex items-center space-x-2.5 font-mono text-xs">
+          <div className="px-3 py-1.5 rounded-[6px] bg-[#F7F6F2] border border-[#E8E5DD]">
+            <span className="text-[#78746D] block text-[9.5px]">PROGRESS</span>
+            <span className="text-[#171717] font-bold">{statusData?.progress_pct || 0}%</span>
           </div>
-          <div className="px-3 py-2 rounded-lg bg-[#141b29] border border-[#1e2838] text-slate-300">
-            <span className="text-slate-500 block text-[10px]">CURRENT PHASE</span>
-            <span className="text-emerald-400 font-bold">{statusData?.current_phase}</span>
+          <div className="px-3 py-1.5 rounded-[6px] bg-[#F7F6F2] border border-[#E8E5DD]">
+            <span className="text-[#78746D] block text-[9.5px]">ACTIVE STAGE</span>
+            <span className="text-[#E9681B] font-bold">{statusData?.current_phase}</span>
           </div>
         </div>
       </div>
 
-      {/* Multi-Stage Mission Pipeline */}
+      {/* Multi-Stage Mission Lifecycle Pipeline */}
       <MissionPipeline currentStatus={statusData?.status || "scheduled"} />
 
-      {/* Synchronized World Map & Convergence View */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2 text-xs font-mono text-cyan-400">
-            <Radio className="w-4 h-4 animate-pulse" />
-            <span>REAL-TIME ORBITAL ASSET TRACKING & CONVERGENCE</span>
-          </div>
-          <span className="text-[11px] font-mono text-slate-400">
-            Spacecraft visibly reaches target vicinity during sensor_active phase
+      {/* Synchronized Orbital Asset Tracking Map */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-xs font-mono text-[#171717]">
+          <span className="font-semibold uppercase">REAL-TIME ORBIT TRACKING & CONVERGENCE</span>
+          <span className="text-[#66635D] text-[11px]">
+            Spacecraft visibly enters target horizon during SENSOR ACTIVE phase
           </span>
         </div>
         <SatelliteMap
           satelliteId={satId}
           satelliteCode={satCode}
           targetCoords={{ lat: targetLat, lon: targetLon, label: `${targetRegion.toUpperCase()} TARGET` }}
-          height={380}
+          height={360}
         />
       </div>
 
-      {/* Mission Result Card (Rendered upon complete) */}
+      {/* Mission Result Card (Unlocked upon complete) */}
       {resultData && (
-        <div className="bg-gradient-to-br from-[#0c161f] via-[#0d1824] to-[#0a121d] border border-emerald-500/50 rounded-2xl p-6 shadow-2xl space-y-5 animate-in fade-in duration-300">
-          <div className="flex items-center justify-between border-b border-emerald-900/40 pb-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-full bg-emerald-950 border border-emerald-700 flex items-center justify-center text-emerald-400">
-                <CheckCircle2 className="w-5 h-5" />
+        <BorderGlow active={true}>
+          <div className="bg-[#FFFFFF] rounded-[10px] p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-[#EFECE6] pb-3">
+              <div className="flex items-center space-x-2.5">
+                <CheckCircle2 className="w-5 h-5 text-[#15803D]" />
+                <div>
+                  <h3 className="text-sm font-bold text-[#171717] font-mono uppercase">
+                    Orbital Detection Package Verified
+                  </h3>
+                  <span className="text-xs text-[#15803D] font-mono">
+                    Ground Station Downlink Decoded • Checksum Validated
+                  </span>
+                </div>
               </div>
-              <div>
-                <h3 className="text-base font-bold text-white font-mono uppercase tracking-wide">
-                  Mission Payload Result Verified
-                </h3>
-                <span className="text-xs text-emerald-300 font-mono">
-                  Ground Station Downlink Decoded • Telemetry Checksum Validated
+
+              <span className="px-2.5 py-0.5 rounded bg-[#F0FDF4] text-[#15803D] border border-[#BBF7D0] text-[11px] font-mono font-bold uppercase">
+                100% Success
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono text-xs">
+              <div className="bg-[#F7F6F2] p-3 rounded-[6px] border border-[#E8E5DD]">
+                <span className="text-[#78746D] block text-[10px]">DETECTION EVENT</span>
+                <span className="text-[#171717] font-bold text-xs block mt-0.5">
+                  {resultData.detection_label}
+                </span>
+                <span className="text-[10px] text-[#15803D] block mt-0.5">
+                  Confidence: {resultData.confidence}%
+                </span>
+              </div>
+
+              <div className="bg-[#F7F6F2] p-3 rounded-[6px] border border-[#E8E5DD]">
+                <span className="text-[#78746D] block text-[10px]">DOWNLINK REDUCTION</span>
+                <span className="text-[#E9681B] font-bold text-xs block mt-0.5">
+                  {resultData.downlink_reduction_pct}%
+                </span>
+                <span className="text-[10px] text-[#78746D] block mt-0.5">
+                  {resultData.input_mb}MB raw → {resultData.output_mb}MB alert
+                </span>
+              </div>
+
+              <div className="bg-[#F7F6F2] p-3 rounded-[6px] border border-[#E8E5DD]">
+                <span className="text-[#78746D] block text-[10px]">EXECUTION TIME</span>
+                <span className="text-[#171717] font-bold text-xs block mt-0.5">
+                  {resultData.processing_seconds}s
+                </span>
+                <span className="text-[10px] text-[#78746D] block mt-0.5">
+                  Rad-Hard Edge Container
+                </span>
+              </div>
+
+              <div className="bg-[#F7F6F2] p-3 rounded-[6px] border border-[#E8E5DD]">
+                <span className="text-[#78746D] block text-[10px]">TARGET COORDINATES</span>
+                <span className="text-[#171717] font-bold text-xs block mt-0.5">
+                  {resultData.target_lat.toFixed(4)}°N
+                </span>
+                <span className="text-[10px] text-[#78746D] block mt-0.5">
+                  {resultData.target_lon.toFixed(4)}°E
                 </span>
               </div>
             </div>
-
-            <span className="px-3 py-1 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700 text-xs font-mono font-bold uppercase">
-              100% Success
-            </span>
           </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-mono">
-            <div className="bg-[#101724] p-3.5 rounded-xl border border-[#1e2838]">
-              <span className="text-slate-500 block text-[10px]">DETECTION PAYLOAD</span>
-              <span className="text-emerald-400 font-bold text-sm block mt-0.5">
-                {resultData.detection_label}
-              </span>
-              <span className="text-[10px] text-slate-400 block mt-1">
-                Confidence: <strong className="text-white">{resultData.confidence}%</strong>
-              </span>
-            </div>
-
-            <div className="bg-[#101724] p-3.5 rounded-xl border border-[#1e2838]">
-              <span className="text-slate-500 block text-[10px]">DOWNLINK REDUCTION</span>
-              <span className="text-cyan-400 font-bold text-sm block mt-0.5">
-                {resultData.downlink_reduction_pct}%
-              </span>
-              <span className="text-[10px] text-slate-400 block mt-1">
-                {resultData.input_mb}MB raw → {resultData.output_mb}MB alert
-              </span>
-            </div>
-
-            <div className="bg-[#101724] p-3.5 rounded-xl border border-[#1e2838]">
-              <span className="text-slate-500 block text-[10px]">PROCESSING TIME</span>
-              <span className="text-amber-400 font-bold text-sm block mt-0.5">
-                {resultData.processing_seconds}s
-              </span>
-              <span className="text-[10px] text-slate-400 block mt-1">
-                ARM Rad-Hard Vector Engine
-              </span>
-            </div>
-
-            <div className="bg-[#101724] p-3.5 rounded-xl border border-[#1e2838]">
-              <span className="text-slate-500 block text-[10px]">COORDINATES ISOLATED</span>
-              <span className="text-white font-bold text-sm block mt-0.5">
-                {resultData.target_lat.toFixed(4)}°N
-              </span>
-              <span className="text-[10px] text-slate-400 block mt-1">
-                {resultData.target_lon.toFixed(4)}°E
-              </span>
-            </div>
-          </div>
-        </div>
+        </BorderGlow>
       )}
 
-      {/* Live Telemetry Console Logs */}
-      <div className="bg-[#0b0f17] border border-[#1e2838] rounded-2xl p-5 space-y-3 font-mono">
-        <div className="flex items-center justify-between border-b border-[#1a2230] pb-2 text-xs">
-          <div className="flex items-center space-x-2 text-slate-400">
-            <Terminal className="w-3.5 h-3.5 text-cyan-400" />
-            <span>ORBITAL TELEMETRY EVENT LOG</span>
+      {/* Telemetry Event Log */}
+      <div className="bg-[#FFFFFF] border border-[#DEDCD5] rounded-[10px] p-5 space-y-2.5 font-mono shadow-xs">
+        <div className="flex items-center justify-between border-b border-[#EFECE6] pb-2 text-xs">
+          <div className="flex items-center space-x-2 text-[#171717]">
+            <Terminal className="w-3.5 h-3.5 text-[#171717]" />
+            <span className="font-semibold uppercase">SPACECRAFT TELEMETRY LOG</span>
           </div>
-          <span className="text-[10px] text-slate-600">LIVE FEED</span>
+          <span className="text-[10px] text-[#78746D]">AOS TELEMETRY</span>
         </div>
 
-        <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1 text-xs">
+        <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1 text-xs">
           {statusData?.latest_logs && statusData.latest_logs.length > 0 ? (
             statusData.latest_logs.map((log, idx) => (
-              <div key={idx} className="flex items-start space-x-3 text-slate-300">
-                <span className="text-slate-500 text-[10px] select-none">
+              <div key={idx} className="flex items-start space-x-2.5 text-[#252525]">
+                <span className="text-[#78746D] text-[10px] select-none">
                   {new Date(log.timestamp).toLocaleTimeString()}
                 </span>
-                <span className="px-1.5 py-0.2 rounded text-[10px] bg-[#141b29] text-cyan-400 border border-cyan-900/40">
+                <span className="px-1 py-0.2 rounded text-[9.5px] bg-[#EFECE6] text-[#171717]">
                   [{log.phase}]
                 </span>
-                <span className="text-slate-300">{log.message}</span>
+                <span className="text-[#171717]">{log.message}</span>
               </div>
             ))
           ) : (
-            <p className="text-xs text-slate-500">Waiting for first telemetry frame packet...</p>
+            <p className="text-xs text-[#78746D]">Awaiting first telemetry frame...</p>
           )}
         </div>
       </div>
