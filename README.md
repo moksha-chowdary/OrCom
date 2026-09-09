@@ -9,22 +9,43 @@ $$\text{Web App} \longrightarrow \text{Floating IDE} \longrightarrow \text{Confi
 
 ---
 
-## ⚡ Quick Start (Two-Command Setup)
+## ⚡ Quick Start
 
-### 1. Start the Backend API (FastAPI + Uvicorn)
+### Option A: One-Click Startup (Recommended for Windows)
+Double-click or run from the root directory:
+```cmd
+start.bat
+```
+*(Or in PowerShell: `.\start.ps1`)*
+
+This starts both the FastAPI backend (port 8000) and Next.js frontend (port 3000), and opens the web application in your browser.
+
+---
+
+### Option B: Manual Setup
+
+#### 1. Start the Backend API (FastAPI + Uvicorn)
 ```bash
 cd backend
 python -m uvicorn app.main:app --port 8000 --reload
 ```
-*The database and investor-ready demo state (including the pre-seeded completed Wildfire Detection mission) will be automatically initialized.*
+*The database and demo data (including pre-seeded completed missions) will be automatically initialized.*
 *API Docs: http://localhost:8000/docs*
 
-### 2. Start the Frontend (Next.js App Router)
+#### 2. Start the Frontend (Next.js App Router)
 ```bash
 cd frontend
 npm run dev
+# Note for Windows PowerShell users: if npm.ps1 script execution is restricted, run:
+npm.cmd run dev
 ```
 *Frontend Console: http://localhost:3000*
+
+#### 3. Run Automated Tests
+```bash
+cd backend
+pytest
+```
 
 ---
 

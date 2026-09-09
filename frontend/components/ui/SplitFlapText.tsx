@@ -16,18 +16,19 @@ export default function SplitFlapText({
   size = "md",
 }: SplitFlapTextProps) {
   const [displayedText, setDisplayedText] = useState(text);
-  const [prevText, setPrevText] = useState(text);
   const [animating, setAnimating] = useState(false);
 
   useEffect(() => {
     if (text !== displayedText) {
-      setPrevText(displayedText);
-      setAnimating(true);
+      const animTimer = setTimeout(() => setAnimating(true), 0);
       const timer = setTimeout(() => {
         setDisplayedText(text);
         setAnimating(false);
       }, 250);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(animTimer);
+        clearTimeout(timer);
+      };
     }
   }, [text, displayedText]);
 

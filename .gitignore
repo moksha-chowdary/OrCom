@@ -7,8 +7,8 @@ __pycache__/
 .coverage
 htmlcov/
 *.db
-storage/results/
-storage/models/
+storage/
+backend/storage/
 
 # Node / Next.js
 node_modules/

@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full scroll-smooth">
+    <html lang="en" className="h-full scroll-smooth" data-scroll-behavior="smooth">
       <body className="min-h-full flex flex-col bg-[#F7F6F2] text-[#171717] antialiased selection:bg-[#E9681B] selection:text-white">
         <AppShell>{children}</AppShell>
       </body>

@@ -34,7 +34,7 @@ export default function SatelliteMap({
 
   const prevPosRef = useRef<{ lat: number; lon: number } | null>(null);
   const nextPosRef = useRef<{ lat: number; lon: number } | null>(null);
-  const animStartTimeRef = useRef<number>(Date.now());
+  const animStartTimeRef = useRef<number>(0);
 
   const projection = useMemo(() => {
     return geoEquirectangular()

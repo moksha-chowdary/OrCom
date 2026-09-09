@@ -1,0 +1,11 @@
+{
+  "name": "orcom-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm.cmd --prefix frontend run dev",
+    "build": "npm.cmd --prefix frontend run build",
+    "start": "npm.cmd --prefix frontend run start",
+    "test": "pytest backend"
+  }
+}
