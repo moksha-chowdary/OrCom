@@ -1,0 +1,5 @@
+{
+  "name": "Maritime Dark Vessel AIS Correlator",
+  "version": "2.0.1",
+  "sensor_capabilities": ["sar", "rgb"]
+}
