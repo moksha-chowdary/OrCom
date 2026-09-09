@@ -1,0 +1,4 @@
+{
+  "name": "Agricultural Canopy NDVI",
+  "sensor_capabilities": ["multispectral"]
+}
