@@ -34,6 +34,15 @@ def test_health_check_and_root():
     assert data["platform"] == "OrCom Satellite Edge Platform"
     assert data["status"] == "operational"
 
+    health_resp = client.get("/health")
+    assert health_resp.status_code == 200
+    assert health_resp.json() == {"status": "ok"}
+
+    api_health = client.get("/api/health")
+    assert api_health.status_code == 200
+    assert api_health.json()["status"] == "healthy"
+
+
 def test_satellites_list_and_positions():
     response = client.get("/api/satellites")
     assert response.status_code == 200

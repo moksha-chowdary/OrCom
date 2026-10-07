@@ -68,6 +68,10 @@ def root():
         "docs_url": "/docs"
     }
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 @app.get("/api/health")
 def health_check():
     return {
@@ -75,3 +79,4 @@ def health_check():
         "satellite_provider": settings.SATELLITE_PROVIDER,
         "seam_verified": True
     }
+
