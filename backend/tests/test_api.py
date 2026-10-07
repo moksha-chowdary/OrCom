@@ -140,3 +140,15 @@ def test_provider_architectural_seam_swapping():
 
     with pytest.raises(NotImplementedError):
         dhruva_prov.get_current_position("sat-oc-01")
+
+def test_cors_headers():
+    res = client.get("/health", headers={"Origin": "http://localhost:3000"})
+    assert res.headers.get("access-control-allow-origin") == "http://localhost:3000"
+    assert res.headers.get("access-control-allow-credentials") == "true"
+
+    res_vercel = client.get("/health", headers={"Origin": "https://orcom-preview-123.vercel.app"})
+    assert res_vercel.headers.get("access-control-allow-origin") == "https://orcom-preview-123.vercel.app"
+
+    res_untrusted = client.get("/health", headers={"Origin": "https://unauthorized-domain.com"})
+    assert "access-control-allow-origin" not in res_untrusted.headers
+
