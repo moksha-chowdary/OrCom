@@ -1,4 +1,26 @@
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
+function getApiBaseUrl(): string {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (!envUrl) {
+    return "http://127.0.0.1:8000/api";
+  }
+  const cleanUrl = envUrl.replace(/\/+$/, "");
+  return cleanUrl.endsWith("/api") ? cleanUrl : `${cleanUrl}/api`;
+}
+
+export const API_BASE_URL = getApiBaseUrl();
+
+export class ApiError extends Error {
+  status: number;
+  isNetworkError: boolean;
+
+  constructor(message: string, status: number = 0, isNetworkError: boolean = false) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.isNetworkError = isNetworkError;
+  }
+}
+
 
 export interface Project {
   id: string;
@@ -218,13 +240,22 @@ export interface IDEPublishPayload {
 
 async function fetchJSON<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+      },
+    });
+  } catch (err: any) {
+    throw new ApiError(
+      `Unable to connect to OrCom backend at ${API_BASE_URL}. Ensure the service is running.`,
+      0,
+      true
+    );
+  }
 
   if (!res.ok) {
     let errorDetail = `Request failed (${res.status})`;
@@ -234,7 +265,7 @@ async function fetchJSON<T>(endpoint: string, options?: RequestInit): Promise<T>
     } catch {
       // fallback
     }
-    throw new Error(errorDetail);
+    throw new ApiError(errorDetail, res.status, false);
   }
 
   return res.json() as Promise<T>;
@@ -264,13 +295,22 @@ export const api = {
     }),
 
   uploadApplication: async (projectId: string, formData: FormData): Promise<Application> => {
-    const res = await fetch(`${API_BASE_URL}/projects/${projectId}/applications`, {
-      method: "POST",
-      body: formData,
-    });
+    let res: Response;
+    try {
+      res = await fetch(`${API_BASE_URL}/projects/${projectId}/applications`, {
+        method: "POST",
+        body: formData,
+      });
+    } catch (err: any) {
+      throw new ApiError(
+        `Unable to connect to OrCom backend at ${API_BASE_URL}. Ensure the service is running.`,
+        0,
+        true
+      );
+    }
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: "Upload failed" }));
-      throw new Error(err.detail || "Upload failed");
+      throw new ApiError(err.detail || "Upload failed", res.status, false);
     }
     return res.json();
   },

@@ -15,12 +15,14 @@ import {
 } from "lucide-react";
 import {
   api,
+  ApiError,
   Application,
   ApplicationRequirements,
   Satellite,
   PassWindow
 } from "@/lib/api-client";
 import BorderGlow from "@/components/ui/BorderGlow";
+import Link from "next/link";
 
 export default function DeployPage() {
   const params = useParams();
@@ -40,6 +42,7 @@ export default function DeployPage() {
   const [deployStep, setDeployStep] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<ApiError | null>(null);
 
   const deployStages = [
     "PACKAGING APPLICATION PAYLOAD & MANIFEST...",
@@ -63,7 +66,10 @@ export default function DeployPage() {
         setSatellite(sat);
         setPassWindow(pass);
       })
-      .catch((err) => console.error("Error loading deployment data", err))
+      .catch((err) => {
+        console.error("Error loading deployment data", err);
+        setLoadError(err instanceof ApiError ? err : new ApiError(err?.message || "Failed to load deployment data", 500));
+      })
       .finally(() => setIsLoading(false));
   }, [appId, satId, region]);
 
@@ -103,6 +109,37 @@ export default function DeployPage() {
       <div className="py-24 text-center">
         <div className="w-5 h-5 border-2 border-[#E9681B] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
         <p className="text-xs font-mono text-[#66635D]">Acquiring deterministic pass geometry...</p>
+      </div>
+    );
+  }
+
+  if (loadError?.isNetworkError) {
+    return (
+      <div className="py-24 text-center max-w-md mx-auto space-y-3">
+        <Rocket className="w-8 h-8 text-rose-500 mx-auto mb-2" />
+        <h2 className="text-sm font-semibold text-[#171717]">Backend Connection Offline</h2>
+        <p className="text-xs text-[#66635D]">
+          Unable to establish pre-flight staging link with OrCom API. Please check your backend service status.
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="btn-secondary text-xs px-3 py-1.5 inline-block font-mono"
+        >
+          Retry Link
+        </button>
+      </div>
+    );
+  }
+
+  if (!application || !satellite) {
+    return (
+      <div className="py-24 text-center space-y-2">
+        <Rocket className="w-8 h-8 text-amber-600 mx-auto mb-2" />
+        <h2 className="text-sm font-semibold text-[#171717]">Workload or Spacecraft Not Found</h2>
+        <p className="text-xs text-[#66635D]">The specified application or target satellite is not available in the registry.</p>
+        <Link href="/console" className="text-xs text-[#E9681B] hover:underline inline-block font-mono">
+          ← Return to Console
+        </Link>
       </div>
     );
   }

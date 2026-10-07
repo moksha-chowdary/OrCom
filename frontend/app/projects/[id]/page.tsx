@@ -12,8 +12,9 @@ import {
   FileCode,
   AlertCircle
 } from "lucide-react";
-import { api, Project, Application } from "@/lib/api-client";
+import { api, ApiError, Project, Application } from "@/lib/api-client";
 import FloatingIDE from "@/components/FloatingIDE";
+import Link from "next/link";
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -23,6 +24,7 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<ApiError | null>(null);
   const [isIDEOpen, setIsIDEOpen] = useState(false);
 
   useEffect(() => {
@@ -35,7 +37,10 @@ export default function ProjectDetailPage() {
         setProject(p);
         setApplications(apps);
       })
-      .catch((err) => console.error("Error loading project details", err))
+      .catch((err) => {
+        console.error("Error loading project details", err);
+        setLoadError(err instanceof ApiError ? err : new ApiError(err?.message || "Failed to load project", 500));
+      })
       .finally(() => setIsLoading(false));
   }, [projectId]);
 
@@ -48,14 +53,49 @@ export default function ProjectDetailPage() {
     );
   }
 
+  if (loadError?.isNetworkError) {
+    return (
+      <div className="py-24 text-center max-w-md mx-auto space-y-3">
+        <AlertCircle className="w-8 h-8 text-rose-500 mx-auto mb-2" />
+        <h2 className="text-sm font-semibold text-[#171717]">Backend Connection Offline</h2>
+        <p className="text-xs text-[#66635D]">
+          Unable to connect to the OrCom backend API. Please verify the backend service is operational.
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="btn-secondary text-xs px-3 py-1.5 inline-block font-mono"
+        >
+          Retry Connection
+        </button>
+      </div>
+    );
+  }
+
+  if (loadError && loadError.status >= 500) {
+    return (
+      <div className="py-24 text-center max-w-md mx-auto space-y-3">
+        <AlertCircle className="w-8 h-8 text-rose-500 mx-auto mb-2" />
+        <h2 className="text-sm font-semibold text-[#171717]">Backend Server Error</h2>
+        <p className="text-xs text-[#66635D]">{loadError.message}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="btn-secondary text-xs px-3 py-1.5 inline-block font-mono"
+        >
+          Retry Connection
+        </button>
+      </div>
+    );
+  }
+
   if (!project) {
     return (
-      <div className="py-24 text-center">
+      <div className="py-24 text-center space-y-2">
         <AlertCircle className="w-8 h-8 text-rose-500 mx-auto mb-2" />
         <h2 className="text-sm font-semibold text-[#171717]">Project Not Found</h2>
-        <a href="/" className="text-xs text-[#E9681B] hover:underline mt-2 inline-block">
-          Return to Dashboard
-        </a>
+        <p className="text-xs text-[#66635D]">The specified project does not exist in the directory.</p>
+        <Link href="/console" className="text-xs text-[#E9681B] hover:underline inline-block font-mono">
+          ← Return to Console
+        </Link>
       </div>
     );
   }

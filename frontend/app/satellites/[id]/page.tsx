@@ -19,7 +19,7 @@ import {
   Lock,
   Camera
 } from "lucide-react";
-import { api, Satellite, GeoPosition } from "@/lib/api-client";
+import { api, ApiError, Satellite, GeoPosition } from "@/lib/api-client";
 import SatelliteMap from "@/components/SatelliteMap";
 import { BorderGlow } from "@/components/ui/BorderGlow";
 
@@ -30,6 +30,7 @@ export default function SatelliteDetailPage() {
   const [satellite, setSatellite] = useState<Satellite | null>(null);
   const [currentPos, setCurrentPos] = useState<GeoPosition | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<ApiError | null>(null);
 
   useEffect(() => {
     if (!satId) return;
@@ -42,7 +43,10 @@ export default function SatelliteDetailPage() {
         setSatellite(sat);
         setCurrentPos(pos);
       })
-      .catch((err) => console.error("Error loading satellite detail", err))
+      .catch((err) => {
+        console.error("Error loading satellite detail", err);
+        setLoadError(err instanceof ApiError ? err : new ApiError(err?.message || "Failed to query spacecraft", 500));
+      })
       .finally(() => setIsLoading(false));
 
     const interval = setInterval(() => {
@@ -61,6 +65,40 @@ export default function SatelliteDetailPage() {
         <p className="text-xs font-mono text-[#66635D] uppercase tracking-wider">
           Querying Spacecraft Ephemeris & Telemetry Bus...
         </p>
+      </div>
+    );
+  }
+
+  if (loadError?.isNetworkError) {
+    return (
+      <div className="py-24 text-center max-w-md mx-auto space-y-3">
+        <Radio className="w-8 h-8 text-rose-500 mx-auto mb-2" />
+        <h2 className="text-sm font-semibold text-[#171717]">Backend Connection Offline</h2>
+        <p className="text-xs text-[#66635D]">
+          Unable to establish telemetry connection to OrCom backend API. Please check your network and backend status.
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="btn-secondary text-xs px-3 py-1.5 inline-block font-mono"
+        >
+          Retry Link
+        </button>
+      </div>
+    );
+  }
+
+  if (loadError && loadError.status >= 500) {
+    return (
+      <div className="py-24 text-center max-w-md mx-auto space-y-3">
+        <Radio className="w-8 h-8 text-rose-500 mx-auto mb-2" />
+        <h2 className="text-sm font-semibold text-[#171717]">Spacecraft Telemetry Bus Error</h2>
+        <p className="text-xs text-[#66635D]">{loadError.message}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="btn-secondary text-xs px-3 py-1.5 inline-block font-mono"
+        >
+          Retry Link
+        </button>
       </div>
     );
   }

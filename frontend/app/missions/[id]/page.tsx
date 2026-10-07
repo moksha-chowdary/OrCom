@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import {
   api,
+  ApiError,
   MissionStatusResponse,
   MissionResult
 } from "@/lib/api-client";
@@ -23,6 +24,7 @@ import MissionPipeline from "@/components/MissionPipeline";
 import SatelliteMap from "@/components/SatelliteMap";
 import SplitFlapText from "@/components/ui/SplitFlapText";
 import BorderGlow from "@/components/ui/BorderGlow";
+import Link from "next/link";
 
 export default function MissionDetailPage() {
   const params = useParams();
@@ -31,6 +33,7 @@ export default function MissionDetailPage() {
   const [statusData, setStatusData] = useState<MissionStatusResponse | null>(null);
   const [resultData, setResultData] = useState<MissionResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [pollError, setPollError] = useState<ApiError | null>(null);
   const [missionInfo, setMissionInfo] = useState<any>(null);
 
   // Poll mission status every 2.5s
@@ -44,6 +47,7 @@ export default function MissionDetailPage() {
         const data = await api.getMissionStatus(missionId);
         if (isMounted) {
           setStatusData(data);
+          setPollError(null);
           if (data.result) {
             setResultData(data.result);
           } else if (data.status === "complete") {
@@ -52,8 +56,11 @@ export default function MissionDetailPage() {
             }).catch(() => {});
           }
         }
-      } catch (err) {
-        console.error("Mission status poll error", err);
+      } catch (err: any) {
+        if (isMounted) {
+          console.error("Mission status poll error", err);
+          setPollError(err instanceof ApiError ? err : new ApiError(err?.message || "Failed to poll mission", 500));
+        }
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -80,6 +87,53 @@ export default function MissionDetailPage() {
       <div className="py-24 text-center">
         <div className="w-5 h-5 border-2 border-[#E9681B] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
         <p className="text-xs font-mono text-[#66635D]">Acquiring orbital telemetry stream...</p>
+      </div>
+    );
+  }
+
+  if (pollError?.isNetworkError && !statusData) {
+    return (
+      <div className="py-24 text-center max-w-md mx-auto space-y-3">
+        <AlertCircle className="w-8 h-8 text-rose-500 mx-auto mb-2" />
+        <h2 className="text-sm font-semibold text-[#171717]">Backend Connection Offline</h2>
+        <p className="text-xs text-[#66635D]">
+          Unable to acquire mission telemetry stream from OrCom API. Please verify the backend service is running.
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="btn-secondary text-xs px-3 py-1.5 inline-block font-mono"
+        >
+          Re-acquire Signal
+        </button>
+      </div>
+    );
+  }
+
+  if (pollError && pollError.status >= 500 && !statusData) {
+    return (
+      <div className="py-24 text-center max-w-md mx-auto space-y-3">
+        <AlertCircle className="w-8 h-8 text-rose-500 mx-auto mb-2" />
+        <h2 className="text-sm font-semibold text-[#171717]">Mission Bus Error</h2>
+        <p className="text-xs text-[#66635D]">{pollError.message}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="btn-secondary text-xs px-3 py-1.5 inline-block font-mono"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!statusData) {
+    return (
+      <div className="py-24 text-center space-y-2">
+        <AlertCircle className="w-8 h-8 text-amber-600 mx-auto mb-2" />
+        <h2 className="text-sm font-semibold text-[#171717]">Mission Not Found</h2>
+        <p className="text-xs text-[#66635D]">The specified orbital mission was not found in the operations registry.</p>
+        <Link href="/missions" className="text-xs text-[#E9681B] hover:underline inline-block font-mono">
+          ← Return to Missions Registry
+        </Link>
       </div>
     );
   }

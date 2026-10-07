@@ -16,7 +16,7 @@ import {
   Clock,
   Compass
 } from "lucide-react";
-import { api, Project, Mission, Satellite } from "@/lib/api-client";
+import { api, ApiError, Project, Mission, Satellite } from "@/lib/api-client";
 import SatelliteMap from "@/components/SatelliteMap";
 import FloatingIDE from "@/components/FloatingIDE";
 import BlurText from "@/components/ui/BlurText";
@@ -29,6 +29,7 @@ export default function ConsoleDashboardPage() {
   const [satellites, setSatellites] = useState<Satellite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isIDEOpen, setIsIDEOpen] = useState(false);
+  const [networkError, setNetworkError] = useState(false);
 
   // New project modal
   const [isNewProjectModal, setIsNewProjectModal] = useState(false);
@@ -45,8 +46,12 @@ export default function ConsoleDashboardPage() {
       setProjects(projData);
       setMissions(misData);
       setSatellites(satData);
-    } catch (err) {
+      setNetworkError(false);
+    } catch (err: any) {
       console.error("Dashboard data load error", err);
+      if (err instanceof ApiError && err.isNetworkError) {
+        setNetworkError(true);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -74,6 +79,21 @@ export default function ConsoleDashboardPage() {
 
   return (
     <div className="space-y-8">
+      {networkError && (
+        <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-[8px] flex items-center justify-between text-xs text-amber-700">
+          <div className="flex items-center space-x-2">
+            <Radio className="w-4 h-4 text-amber-600 animate-pulse flex-shrink-0" />
+            <span>Backend API link offline. Check Railway deployment or local backend service.</span>
+          </div>
+          <button
+            onClick={() => refreshDashboard()}
+            className="font-mono underline hover:text-amber-900 ml-2"
+          >
+            Retry Link
+          </button>
+        </div>
+      )}
+
       {/* Hero Header — Developer Platform Context */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#DEDCD5] pb-6">
         <div className="space-y-1.5">

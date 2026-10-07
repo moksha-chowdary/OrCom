@@ -18,12 +18,14 @@ import {
 } from "lucide-react";
 import {
   api,
+  ApiError,
   Application,
   ApplicationRequirements,
   ValidationReport,
   CompatibilityResult
 } from "@/lib/api-client";
 import BorderGlow from "@/components/ui/BorderGlow";
+import Link from "next/link";
 
 export default function ApplicationDetailPage() {
   const params = useParams();
@@ -35,6 +37,7 @@ export default function ApplicationDetailPage() {
   const [validationReport, setValidationReport] = useState<ValidationReport | null>(null);
   const [compatibility, setCompatibility] = useState<CompatibilityResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<ApiError | null>(null);
 
   useEffect(() => {
     if (!appId) return;
@@ -51,7 +54,10 @@ export default function ApplicationDetailPage() {
         setValidationReport(val);
         setCompatibility(comp);
       })
-      .catch((err) => console.error("Failed to load application detail", err))
+      .catch((err) => {
+        console.error("Failed to load application detail", err);
+        setLoadError(err instanceof ApiError ? err : new ApiError(err?.message || "Failed to load application", 500));
+      })
       .finally(() => setIsLoading(false));
   }, [appId]);
 
@@ -64,11 +70,49 @@ export default function ApplicationDetailPage() {
     );
   }
 
+  if (loadError?.isNetworkError) {
+    return (
+      <div className="py-24 text-center max-w-md mx-auto space-y-3">
+        <AlertTriangle className="w-8 h-8 text-rose-500 mx-auto mb-2" />
+        <h2 className="text-sm font-semibold text-[#171717]">Backend Connection Offline</h2>
+        <p className="text-xs text-[#66635D]">
+          Unable to connect to the OrCom backend API. Please verify the backend service is running on Railway or locally.
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="btn-secondary text-xs px-3 py-1.5 inline-block"
+        >
+          Retry Connection
+        </button>
+      </div>
+    );
+  }
+
+  if (loadError && loadError.status >= 500) {
+    return (
+      <div className="py-24 text-center max-w-md mx-auto space-y-3">
+        <AlertTriangle className="w-8 h-8 text-rose-500 mx-auto mb-2" />
+        <h2 className="text-sm font-semibold text-[#171717]">Backend Server Error</h2>
+        <p className="text-xs text-[#66635D]">{loadError.message}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="btn-secondary text-xs px-3 py-1.5 inline-block"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   if (!application || !requirements) {
     return (
-      <div className="py-24 text-center">
+      <div className="py-24 text-center space-y-2">
         <AlertTriangle className="w-8 h-8 text-amber-600 mx-auto mb-2" />
         <h2 className="text-sm font-semibold text-[#171717]">Application Not Found</h2>
+        <p className="text-xs text-[#66635D]">The specified application workload does not exist in the orbital registry.</p>
+        <Link href="/console" className="text-xs text-[#E9681B] hover:underline inline-block font-mono">
+          ← Return to Console
+        </Link>
       </div>
     );
   }
